@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
     CoordinatorEntity,
 )
 
@@ -108,3 +109,15 @@ class ChlorinatorBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Return the state of the sensor."""
         return self.coordinator.data.get(self._sensor)
+
+    @property
+    def should_poll(self) -> bool:
+        """No polling needed."""
+        return False
+
+    async def async_added_to_hass(self):
+        """When entity is added to hass."""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            self.coordinator.async_add_listener(self.async_write_ha_state)
+        )
