@@ -38,7 +38,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             f"Could not find chlorinator device with address {address}"
         )
 
-    chlorinator = ChlorinatorAPI(ble_device, accesscode)
+    try:
+        chlorinator = ChlorinatorAPI(ble_device, accesscode)
+    except Exception as e:
+        _LOGGER.error(f"Failed to connect to chlorinator device with address {address}: {e}")
+        raise ConfigEntryNotReady(
+            f"Failed to connect to chlorinator device with address {address}: {e}"
+        )
+
     coordinator = ChlorinatorDataUpdateCoordinator(hass, chlorinator)
     await coordinator.async_config_entry_first_refresh()
 
@@ -55,4 +62,4 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     await hass.config_entries.async_forward_entry_unload(entry, PLATFORMS)
-    return True
+    return

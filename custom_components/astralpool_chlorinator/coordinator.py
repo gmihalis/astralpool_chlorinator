@@ -45,10 +45,10 @@ class ChlorinatorDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._data_age >= 3: # 3 polling events = 60 seconds
             try:
                 data = await self.chlorinator.async_gatherdata()
-            except Exception:
-                _LOGGER.warning("Failed _gatherdata: %s", self._data_age)
+            except Exception as e:
+                _LOGGER.warning("Failed _gatherdata: %s", e)
                 data = {}
-            if data != {}:
+            if data:
                 self.data = data
                 self._data_age = 0
             elif self._data_age >= 15: #15 polling events  = 5 minutes
@@ -57,3 +57,11 @@ class ChlorinatorDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise UpdateFailed("Error communicating with API")
         return self.data
     
+    async def async_gatherdata(self):
+        """Gather data from the Chlorinator API."""
+        try:
+            data = await self.chlorinator.async_gatherdata()
+        except Exception as e:
+            _LOGGER.warning("Failed to gather data: %s", e)
+            data = {}
+        return data
